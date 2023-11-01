@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "./graphics.h"
 
 const int winSize = 800;
@@ -11,12 +12,25 @@ const int gridWidth = 10;
 int grid[10][10];
 const int waitTime = 25;
 
-void drawRobot(int topleftX, int topleftY) {
-    foreground();
-    setColour(green);
-    int triangleX[3] = {topleftX + 0.5*tileSize, topleftX + tileSize, topleftX};
-    int triangleY[3] = {topleftY, topleftY + tileSize, topleftY + tileSize};
-    fillPolygon(3, triangleX, triangleY);
+typedef struct robot {
+    int x;
+    int y;
+    char dir;
+} robot;
+
+typedef struct trianglePolygon {
+    int xPoints[3];
+    int yPoints[3];
+} triangle;
+
+// create triangles facing different directions
+triangle northTriangle = {{0.5*tileSize, tileSize, 0}, {0, tileSize, tileSize}};
+triangle eastTriangle = {{tileSize, 0, 0}, {0.5*tileSize, tileSize, 0}};
+triangle southTriangle = {{0.5*tileSize, 0, tileSize},{tileSize, 0, 0}};
+triangle westTriangle = {{0, tileSize, tileSize},{0.5*tileSize, 0, tileSize}};
+
+int getScreenPos(int coordinatePart) { // convert either grid x or y coordinate into an x or y position on screen
+    return (coordinatePart * tileSize) + gridOffset;
 }
 
 void getGrid(void) {
@@ -38,36 +52,69 @@ void drawGrid(void) {
     getGrid();
 
     background();
-    for (int i = 0; i < gridHeight; i++) {
-        int y = (i * tileSize) + gridOffset;
-        for (int j = 0; j < gridWidth; j++) {
-            int x = (j * tileSize) + gridOffset;
-            if (grid[i][j] == 0) {
+    for (int y = 0; y < gridHeight; y++) {
+        int posY = getScreenPos(y);
+        for (int x = 0; x < gridWidth; x++) {
+            int posX = getScreenPos(x);
+            if (grid[y][x] == 0) { // empty tile
                 setColour(black);
-                drawRect(x,y,tileSize,tileSize);
-            } else if (grid[i][j] == 1) {
+                drawRect(posX,posY,tileSize,tileSize);
+            } else if (grid[y][x] == 1) { // home tile
                 setColour(blue);
-                fillRect(x,y,tileSize,tileSize);
-            } else if (grid[i][j] == 2) {
+                fillRect(posX,posY,tileSize,tileSize);
+            } else { // obstacle tile
                 setColour(red);
-                fillRect(x,y,tileSize,tileSize);
+                fillRect(posX,posY,tileSize,tileSize);
             }
         }
     }
 }
 
-int getPos(char* positionArg, int boundary) {
+void triangleDuplication(triangle* dest, triangle* src) {
+    size_t memSize = 3 * sizeof(int);
+    memcpy(dest->xPoints, src->xPoints, memSize);
+    memcpy(dest->yPoints, src->yPoints, memSize);
+}
+
+void drawRobot(robot* bot) {
+    foreground();
+    setColour(green);
+    int posX = getScreenPos(bot->x);
+    int posY = getScreenPos(bot->y);
+    triangle screenTriangle;
+    if (bot->dir == 'N') {
+        triangleDuplication(&screenTriangle, &northTriangle);
+    } else if (bot->dir == 'E') {
+        triangleDuplication(&screenTriangle, &eastTriangle);
+    } else if (bot->dir == 'S') {
+        triangleDuplication(&screenTriangle, &southTriangle);
+    } else {
+        triangleDuplication(&screenTriangle, &westTriangle);
+    }
+    // offset the points so that the triangle is shown within the correct tile
+    for (int i = 0; i < 3; i++) {
+        screenTriangle.xPoints[i] += posX;
+        screenTriangle.yPoints[i] += posY;
+    }
+    fillPolygon(3,screenTriangle.xPoints,screenTriangle.yPoints);
+}
+
+void moveRobot(robot* bot) {
+    drawRobot(bot);
+}
+
+int getPosition(char* positionArg, int boundary) {
     int pos = strtol(positionArg, NULL, 10);
     if (pos >= 0 && pos < boundary) {
         return pos;
     }
-    return 0; // default pos if argument is invalid
+    return 0; // default position if argument is invalid
 }
 
 char getDirection(char* directionArg) {
-    char direction = toupper(directionArg[0]);
-    if (direction == 'N' || direction == 'E' || direction == 'S' || direction == 'W') {
-        return direction;
+    char dir = toupper(directionArg[0]);
+    if (dir == 'N' || dir == 'E' || dir == 'S' || dir == 'W') {
+        return dir;
     }
     return 'N'; // default direction if argument is invalid
 }
@@ -78,12 +125,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    int posX = getPos(argv[1], gridWidth);
-    int posY = getPos(argv[2], gridHeight);
-    char dir = getDirection(argv[3]);
-    printf("%d %d %c\n",posX,posY,dir);
-
-    //setWindowSize(winSize,winSize);
-    //drawGrid();
+    int startX = getPosition(argv[1], gridWidth);
+    int startY = getPosition(argv[2], gridHeight);
+    char startDir = getDirection(argv[3]);
+    robot robot1 = {startX, startY, startDir};
+    
+    setWindowSize(winSize,winSize);
+    drawGrid();
+    moveRobot(&robot1);
     return 0;
 }
