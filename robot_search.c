@@ -18,11 +18,11 @@ typedef struct robot {
     char dir;
 } robot;
 
-int getScreenPos(int coordinatePart) { // convert either grid x or y coordinate into an x or y position on screen
+int getScreenPos(int coordinatePart) { // convert coordinate part (either x or y value) into an x or y position on screen
     return (coordinatePart * tileSize) + gridOffset;
 }
 
-void getGrid(void) {
+void setGrid(void) {
     FILE* fp = fopen("./grid.txt","r");
     if (fp == NULL) {
         fprintf(stderr,"Couldn't find the file ./grid.txt\n");
@@ -93,13 +93,6 @@ void drawRobot(robot* bot) {
     }
 }
 
-int atMarker(robot* bot) {
-    if (grid[bot->y][bot->x] == 1) {
-        return 1;
-    }
-    return 0;
-}
-
 void forward(robot* bot) {
     if (bot->dir == 'N') {
         bot->y--;
@@ -112,10 +105,74 @@ void forward(robot* bot) {
     }
 }
 
+void left(robot* bot) {
+    if (bot->dir == 'N') {
+        bot->dir = 'W';
+    } else if (bot->dir == 'E') {
+        bot->dir = 'N';
+    } else if (bot->dir == 'S') {
+        bot->dir = 'E';
+    } else { // robot facing west
+        bot->dir = 'S';
+    }
+}
+
+void right(robot* bot) {
+    if (bot->dir == 'N') {
+        bot->dir = 'E';
+    } else if (bot->dir == 'E') {
+        bot->dir = 'S';
+    } else if (bot->dir == 'S') {
+        bot->dir = 'W';
+    } else { // robot facing west
+        bot->dir = 'N';
+    }
+}
+
+int atMarker(robot* bot) {
+    if (grid[bot->y][bot->x] == 1) {
+        return 1;
+    }
+    return 0;
+}
+
+int atHome(robot* bot) {
+    if (grid[bot->y][bot->x] == 3) {
+        return 1;
+    }
+    return 0;
+}
+
+int canMoveForward(robot* bot) {
+    if (bot->dir == 'N') {
+        int forwardY = bot->y - 1;
+        if (forwardY >= 0 && grid[forwardY][bot->x] != 2) { // 2 is obstacle tile
+            return 1;
+        }
+    } else if (bot->dir == 'E') {
+        int forwardX = bot->x + 1;
+        if (forwardX < gridWidth && grid[bot->y][forwardX] != 2) {
+            return 1;
+        }
+    } else if (bot->dir == 'S') {
+        int forwardY = bot->y + 1;
+        if (forwardY < gridHeight && grid[forwardY][bot->x] != 2) {
+            return 1;
+        }
+    } else { // robot facing west
+        int forwardX = bot->x + 1;
+        if (forwardX >= 0 && grid[bot->y][forwardX] != 2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void moveRobot(robot* bot) {
+    drawRobot(bot);
     while (!atMarker(bot)) {
-        drawRobot(bot);
         forward(bot);
+        drawRobot(bot);
         sleep(waitTime);
     }
 }
@@ -147,7 +204,7 @@ int main(int argc, char **argv) {
     robot robot1 = {startX, startY, startDir};
     
     setWindowSize(winSize,winSize);
-    getGrid();
+    setGrid();
     setHome(startX,startY);
     drawGrid();
 
