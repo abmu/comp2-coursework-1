@@ -56,13 +56,34 @@ void drawGrid(void) {
     }
 }
 
+int getPos(char* positionArg, int boundary) {
+    int pos = strtol(positionArg, NULL, 10);
+    if (pos >= 0 && pos < boundary) {
+        return pos;
+    }
+    return 0; // default pos if argument is invalid
+}
+
+char getDirection(char* directionArg) {
+    char direction = toupper(directionArg[0]);
+    if (direction == 'N' || direction == 'E' || direction == 'S' || direction == 'W') {
+        return direction;
+    }
+    return 'N'; // default direction if argument is invalid
+}
+
 int main(int argc, char **argv) {
     if (argc != 4) {
         fprintf(stderr,"Invalid number of arguments\n");
         return 1;
     }
 
-    setWindowSize(winSize,winSize);
-    drawGrid();
+    int posX = getPos(argv[1], gridWidth);
+    int posY = getPos(argv[2], gridHeight);
+    char dir = getDirection(argv[3]);
+    printf("%d %d %c\n",posX,posY,dir);
+
+    //setWindowSize(winSize,winSize);
+    //drawGrid();
     return 0;
 }
