@@ -91,56 +91,7 @@ void drawRobot(robot* bot) {
         int yPoints[3] = {posY + 0.5*tileSize, posY, posY + tileSize};
         fillPolygon(3,xPoints,yPoints);
     }
-}
-
-void forward(robot* bot) {
-    if (bot->dir == 'N') {
-        bot->y--;
-    } else if (bot->dir == 'E') {
-        bot->x++;
-    } else if (bot->dir == 'S') {
-        bot->y++;
-    } else { // robot facing west
-        bot->x--;
-    }
-}
-
-void left(robot* bot) {
-    if (bot->dir == 'N') {
-        bot->dir = 'W';
-    } else if (bot->dir == 'E') {
-        bot->dir = 'N';
-    } else if (bot->dir == 'S') {
-        bot->dir = 'E';
-    } else { // robot facing west
-        bot->dir = 'S';
-    }
-}
-
-void right(robot* bot) {
-    if (bot->dir == 'N') {
-        bot->dir = 'E';
-    } else if (bot->dir == 'E') {
-        bot->dir = 'S';
-    } else if (bot->dir == 'S') {
-        bot->dir = 'W';
-    } else { // robot facing west
-        bot->dir = 'N';
-    }
-}
-
-int atMarker(robot* bot) {
-    if (grid[bot->y][bot->x] == 1) {
-        return 1;
-    }
-    return 0;
-}
-
-int atHome(robot* bot) {
-    if (grid[bot->y][bot->x] == 3) {
-        return 1;
-    }
-    return 0;
+    sleep(waitTime);
 }
 
 int canMoveForward(robot* bot) {
@@ -160,7 +111,7 @@ int canMoveForward(robot* bot) {
             return 1;
         }
     } else { // robot facing west
-        int forwardX = bot->x + 1;
+        int forwardX = bot->x - 1;
         if (forwardX >= 0 && grid[bot->y][forwardX] != 2) {
             return 1;
         }
@@ -168,12 +119,68 @@ int canMoveForward(robot* bot) {
     return 0;
 }
 
+void forward(robot* bot) {
+    if (canMoveForward(bot)) {
+        if (bot->dir == 'N') {
+            bot->y--;
+        } else if (bot->dir == 'E') {
+            bot->x++;
+        } else if (bot->dir == 'S') {
+            bot->y++;
+        } else { // robot facing west
+            bot->x--;
+        }
+    }
+    drawRobot(bot);
+}
+
+void left(robot* bot) {
+    if (bot->dir == 'N') {
+        bot->dir = 'W';
+    } else if (bot->dir == 'E') {
+        bot->dir = 'N';
+    } else if (bot->dir == 'S') {
+        bot->dir = 'E';
+    } else { // robot facing west
+        bot->dir = 'S';
+    }
+    drawRobot(bot);
+}
+
+void right(robot* bot) {
+    if (bot->dir == 'N') {
+        bot->dir = 'E';
+    } else if (bot->dir == 'E') {
+        bot->dir = 'S';
+    } else if (bot->dir == 'S') {
+        bot->dir = 'W';
+    } else { // robot facing west
+        bot->dir = 'N';
+    }
+    drawRobot(bot);
+}
+
+int atMarker(robot* bot) {
+    if (grid[bot->y][bot->x] == 1) {
+        return 1;
+    }
+    return 0;
+}
+
+int atHome(robot* bot) {
+    if (grid[bot->y][bot->x] == 3) {
+        return 1;
+    }
+    return 0;
+}
+
 void moveRobot(robot* bot) {
     drawRobot(bot);
     while (!atMarker(bot)) {
-        forward(bot);
-        drawRobot(bot);
-        sleep(waitTime);
+        right(bot);
+        while (!atMarker(bot) && canMoveForward(bot)) {
+            forward(bot);
+        }
     }
 }
 
