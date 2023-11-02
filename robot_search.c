@@ -16,6 +16,9 @@ typedef struct robot {
     int x;
     int y;
     char dir;
+    int hasMarker;
+    int numMoves;
+    char* prevMoves;
 } robot;
 
 int getScreenPos(int coordinatePart) { // convert coordinate part (either x or y value) into an x or y position on screen
@@ -57,7 +60,7 @@ void drawGrid(void) {
                 drawRect(posX,posY,tileSize,tileSize);
                 continue;
             } else if (grid[y][x] == 1) { // marker tile
-                setColour(gray);
+                setColour(lightgray);
             } else if (grid[y][x] == 2) { // obstacle tile
                 setColour(black);
             } else { // home tile
@@ -71,7 +74,11 @@ void drawGrid(void) {
 void drawRobot(robot* bot) {
     foreground();
     clear();
-    setColour(green);
+    if (bot->hasMarker) {
+        setColour(lightgray);
+    } else {
+        setColour(green);
+    }
     int posX = getScreenPos(bot->x);
     int posY = getScreenPos(bot->y);
     if (bot->dir == 'N') {
@@ -119,7 +126,14 @@ int canMoveForward(robot* bot) {
     return 0;
 }
 
+void updateMoves(robot* bot, char newMove) {
+    bot->numMoves++;
+    bot->prevMoves = realloc(bot->prevMoves, bot->numMoves);
+    bot->prevMoves[bot->numMoves - 1] = newMove; // access last index and add new move
+}
+
 void forward(robot* bot) {
+    updateMoves(bot, 'F');
     if (canMoveForward(bot)) {
         if (bot->dir == 'N') {
             bot->y--;
@@ -135,6 +149,7 @@ void forward(robot* bot) {
 }
 
 void left(robot* bot) {
+    updateMoves(bot, 'L');
     if (bot->dir == 'N') {
         bot->dir = 'W';
     } else if (bot->dir == 'E') {
@@ -148,6 +163,7 @@ void left(robot* bot) {
 }
 
 void right(robot* bot) {
+    updateMoves(bot, 'R');
     if (bot->dir == 'N') {
         bot->dir = 'E';
     } else if (bot->dir == 'E') {
@@ -160,6 +176,13 @@ void right(robot* bot) {
     drawRobot(bot);
 }
 
+int atHome(robot* bot) {
+    if (grid[bot->y][bot->x] == 3) {
+        return 1;
+    }
+    return 0;
+}
+
 int atMarker(robot* bot) {
     if (grid[bot->y][bot->x] == 1) {
         return 1;
@@ -167,11 +190,27 @@ int atMarker(robot* bot) {
     return 0;
 }
 
-int atHome(robot* bot) {
-    if (grid[bot->y][bot->x] == 3) {
-        return 1;
+int isCarryingAMarker(robot* bot) {
+    return bot->hasMarker;
+}
+
+void pickUpMarker(robot* bot) {
+    if (atMarker(bot) && !isCarryingAMarker(bot)) {
+        grid[bot->y][bot->x] = 0;
+        bot->hasMarker = 1;
     }
-    return 0;
+    drawGrid();
+    drawRobot(bot);
+}
+
+void dropMarker(robot* bot) {
+    // TO DO - allow multiple markers to be dropped on one tile
+    if (grid[bot->y][bot->x] == 0 && isCarryingAMarker(bot)) {
+        grid[bot->y][bot->x] = 1;
+        bot->hasMarker = 0;
+    }
+    drawGrid();
+    drawRobot(bot);
 }
 
 void moveRobot(robot* bot) {
@@ -181,6 +220,9 @@ void moveRobot(robot* bot) {
         while (!atMarker(bot) && canMoveForward(bot)) {
             forward(bot);
         }
+    }
+    for (int i = 0; i < bot->numMoves; i++) {
+        printf("%c\n",bot->prevMoves[i]);
     }
 }
 
@@ -208,7 +250,7 @@ int main(int argc, char **argv) {
     int startX = getPosition(argv[1], gridWidth);
     int startY = getPosition(argv[2], gridHeight);
     char startDir = getDirection(argv[3]);
-    robot robot1 = {startX, startY, startDir};
+    robot robot1 = {startX, startY, startDir, 0, 0};
     
     setWindowSize(winSize,winSize);
     setGrid();
