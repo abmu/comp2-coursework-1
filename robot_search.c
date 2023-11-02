@@ -10,7 +10,8 @@ const int gridOffset = 100;
 const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
-const int waitTime = 500; // milliseconds
+int markersLeft = 0;
+const int waitTime = 200; // milliseconds
 
 typedef struct robot {
     int x;
@@ -51,6 +52,7 @@ void setHome(int x, int y) {
 void drawGrid(void) {
     background();
     clear();
+    markersLeft = 0;
     for (int y = 0; y < gridHeight; y++) {
         int posY = getScreenPos(y);
         for (int x = 0; x < gridWidth; x++) {
@@ -61,6 +63,7 @@ void drawGrid(void) {
                 continue;
             } else if (grid[y][x] == 1) { // marker tile
                 setColour(lightgray);
+                markersLeft++;
             } else if (grid[y][x] == 2) { // obstacle tile
                 setColour(black);
             } else { // home tile
@@ -127,6 +130,11 @@ int canMoveForward(robot* bot) {
 }
 
 void updateMoves(robot* bot, char newMove) {
+    if (newMove == '-') { // delete last move from arr
+        bot->numMoves--;
+        bot->prevMoves = realloc(bot->prevMoves, bot->numMoves);
+        return;
+    }
     bot->numMoves++;
     bot->prevMoves = realloc(bot->prevMoves, bot->numMoves);
     bot->prevMoves[bot->numMoves - 1] = newMove; // access last index and add new move
@@ -204,25 +212,53 @@ void pickUpMarker(robot* bot) {
 }
 
 void dropMarker(robot* bot) {
-    // TO DO - allow multiple markers to be dropped on one tile
-    if (grid[bot->y][bot->x] == 0 && isCarryingAMarker(bot)) {
-        grid[bot->y][bot->x] = 1;
-        bot->hasMarker = 0;
+    if (isCarryingAMarker(bot) && grid[bot->y][bot->x] != 2) { // 2 is obstacle tile
+        if (grid[bot->y][bot->x] == 0) { // empty tile
+            grid[bot->y][bot->x] = 1;
+            bot->hasMarker = 0;
+        } else if (grid[bot->y][bot->x] == 3) { // home tile
+            bot->hasMarker = 0;
+        } else { // marker tile
+            // TO DO - allow multiple markers to be dropped on one tile
+        }
     }
     drawGrid();
     drawRobot(bot);
 }
 
+void reverseMoves(robot* bot) {
+    // face opposite direction
+    right(bot);
+    right(bot);
+    // remove these additional moves done from prevMoves
+    updateMoves(bot, '-');
+    updateMoves(bot, '-');
+    while (bot->numMoves > 0) {
+        char lastMove = bot->prevMoves[bot->numMoves-1];
+        updateMoves(bot, '-'); // remove last robot move
+        if (lastMove == 'F') {
+            forward(bot);
+        } else if (lastMove == 'L') {
+            right(bot);
+        } else { // lastMove is right
+            left(bot);
+        }
+        updateMoves(bot, '-');
+    }
+}
+
 void moveRobot(robot* bot) {
     drawRobot(bot);
-    while (!atMarker(bot)) {
-        right(bot);
-        while (!atMarker(bot) && canMoveForward(bot)) {
-            forward(bot);
+    while (markersLeft > 0) {
+        while (!atMarker(bot)) {
+            right(bot);
+            while (!atMarker(bot) && canMoveForward(bot)) {
+                forward(bot);
+            }
         }
-    }
-    for (int i = 0; i < bot->numMoves; i++) {
-        printf("%c\n",bot->prevMoves[i]);
+        pickUpMarker(bot);
+        reverseMoves(bot);
+        dropMarker(bot);
     }
 }
 
@@ -258,5 +294,6 @@ int main(int argc, char **argv) {
     drawGrid();
 
     moveRobot(&robot1);
+    free(robot1.prevMoves);
     return 0;
 }
