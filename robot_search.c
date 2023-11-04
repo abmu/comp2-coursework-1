@@ -11,7 +11,7 @@ const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
 int markersLeft = 0;
-const int waitTime = 50; // milliseconds
+const int waitTime = 10; // milliseconds
 
 typedef struct robot {
     int x;
@@ -263,7 +263,7 @@ void reverseMoves(robot* bot) {
 }
 
 void algorithmStage4(robot* bot) {
-    // may get in a loop if 4 blocks are placed in a specific way
+    // will get in a loop if 4 blocks are placed in a specific way
     while (markersLeft > 0) {
         while (!atMarker(bot)) {
             right(bot);
@@ -286,6 +286,8 @@ char getOppositeDir(char overallDir) {
 
 void algorithmStage6(robot* bot) {
     // may not work if more than one obstacle is placed within a given 2x2 section of the grid
+    // will get in a loop if there is an obstacle in the top corner and another in the bottom corner on one of the sides
+    // will skip specific positions if there are 2 obstacles on the very top with a gap in between, and 2 mirroring obstacles on the very bottom
     char overallDir = 'W';
     while (markersLeft > 0) {
         while (bot->dir != 'S') {
