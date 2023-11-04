@@ -11,7 +11,7 @@ const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
 int markersLeft = 0;
-const int waitTime = 50; // milliseconds
+const int waitTime = 25; // milliseconds
 
 typedef struct robot {
     int x;
@@ -305,9 +305,18 @@ void algorithmStage5(robot* bot) {
                 right(bot);
                 if (canMoveForward(bot)) {
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     left(bot);
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     left(bot);
                     forward(bot);
                     right(bot);
@@ -315,9 +324,18 @@ void algorithmStage5(robot* bot) {
                     left(bot);
                     left(bot);
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     right(bot);
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     forward(bot);
+                    if (atMarker(bot)) {
+                        break;
+                    }
                     right(bot);
                     forward(bot);
                     left(bot);
