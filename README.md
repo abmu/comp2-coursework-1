@@ -1,13 +1,13 @@
 # COMP0002 Coursework 1
 
-The code provided here completes all six stages of the coursework. The objective was to show a robot which traverses a grid containing obstacles until it finds a marker, which is then returned to the robot's home.
+The code provided here completes all six stages of the coursework. The objective was to display a robot traversing a grid containing obstacles until it finds a marker, at which point it picks it up and returns it home.
 
-## Running the Program
+## Running the program
 
 To run the program, follow these steps:
 
-1. Ensure you have the `graphics.c`, `graphics.h`, and `drawapp-3.0.jar` within the coursework files directory.
-2. Compile the source code using the following commands:
+1. Ensure you have the `graphics.c`, `graphics.h`, and `drawapp-3.0.jar` within the same directory as the coursework files.
+2. Compile the source code using the following command:
    ```bash
    gcc robot_search.c graphics.c
    ```
@@ -15,10 +15,10 @@ To run the program, follow these steps:
    ```bash
    ./a.out (0-9) (0-9) (N E S W) | java -jar "drawapp-3.0.jar"
    ```
-   Replace (0-9) with the X and Y positions on the grid, and (N E S W) with the initial direction (however due to the nature of the algorithm this does not matter much). If the chosen grid position is already occupied, the program will not run, so select a different location if needed.
+   Replace (0-9) with the X and Y positions on the grid, and (N E S W) with the initial cardinal direction (due to the nature of the algorithm the direction won't really make a difference). If the chosen grid position is already occupied, the program will not run, so select a different location if needed.
 
-The grid can be adjusted by editing the 'grid.txt' file.
+The grid can be adjusted by editing the `grid.txt` file.
 
 ## Known issues
 
-There are some obstacle positions which may potentially cause the algorithm to fail to find the marker. These are listed in more detail within the `algorithmStage6` procedure in `robot_search.c`.
+There are some obstacle positions which may potentially cause the robot to fail to find all of the markers. These are listed in more detail within the `algorithmStage6` procedure in `robot_search.c`.
