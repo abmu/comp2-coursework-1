@@ -1,6 +1,6 @@
 # COMP0002 Coursework 1
 
-The code provided here completes all six stages of the coursework. The objective was to display a robot traversing a grid containing obstacles until it finds a marker, at which point it picks it up and returns it home.
+The code provided here completes all six stages of the coursework. The objective was to display a robot traversing a grid containing obstacles until it finds a marker(s), at which point it picks it up and returns it home.
 
 ## Running the program
 
