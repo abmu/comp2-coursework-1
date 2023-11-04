@@ -11,7 +11,7 @@ const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
 int markersLeft = 0;
-const int waitTime = 200; // milliseconds
+const int waitTime = 50; // milliseconds
 
 typedef struct robot {
     int x;
@@ -22,8 +22,12 @@ typedef struct robot {
     char* prevMoves;
 } robot;
 
-int getScreenPos(int coordinatePart) { // convert coordinate part (either x or y value) into an x or y position on screen
-    return (coordinatePart * tileSize) + gridOffset;
+int getScreenX(int xCoordinate) {
+    return (xCoordinate * tileSize) + gridOffset;
+}
+
+int getScreenY(int yCoordinate) {
+    return (yCoordinate * tileSize) + gridOffset;
 }
 
 void setGrid(void) {
@@ -54,9 +58,9 @@ void drawGrid(void) {
     clear();
     markersLeft = 0;
     for (int y = 0; y < gridHeight; y++) {
-        int posY = getScreenPos(y);
+        int posY = getScreenY(y);
         for (int x = 0; x < gridWidth; x++) {
-            int posX = getScreenPos(x);
+            int posX = getScreenX(x);
             if (grid[y][x] == 0) { // empty tile
                 setColour(black);
                 drawRect(posX,posY,tileSize,tileSize);
@@ -82,8 +86,8 @@ void drawRobot(robot* bot) {
     } else {
         setColour(green);
     }
-    int posX = getScreenPos(bot->x);
-    int posY = getScreenPos(bot->y);
+    int posX = getScreenX(bot->x);
+    int posY = getScreenY(bot->y);
     if (bot->dir == 'N') {
         int xPoints[3] = {posX + 0.5*tileSize, posX + tileSize, posX};
         int yPoints[3] = {posY, posY + tileSize, posY + tileSize};
@@ -129,6 +133,22 @@ int canMoveForward(robot* bot) {
     return 0;
 }
 
+int isObstacle(robot* bot) {
+    if (bot->dir == 'N') {
+        int forwardY = bot->y - 1;
+        return (forwardY >= 0 && grid[forwardY][bot->x] == 2); // 2 is obstacle tile
+    } else if (bot->dir == 'E') {
+        int forwardX = bot->x + 1;
+        return (forwardX < gridWidth && grid[bot->y][forwardX] == 2);
+    } else if (bot->dir == 'S') {
+        int forwardY = bot->y + 1;
+        return (forwardY < gridHeight && grid[forwardY][bot->x] == 2);
+    } else { // robot facing west
+        int forwardX = bot->x - 1;
+        return (forwardX >= 0 && grid[bot->y][forwardX] == 2);
+    }
+}
+
 void updateMoves(robot* bot, char newMove) {
     if (newMove == '-') { // delete last move from arr
         bot->numMoves--;
@@ -141,8 +161,8 @@ void updateMoves(robot* bot, char newMove) {
 }
 
 void forward(robot* bot) {
-    updateMoves(bot, 'F');
     if (canMoveForward(bot)) {
+        updateMoves(bot, 'F');
         if (bot->dir == 'N') {
             bot->y--;
         } else if (bot->dir == 'E') {
@@ -230,10 +250,10 @@ void reverseMoves(robot* bot) {
     // face opposite direction
     right(bot);
     right(bot);
-    // remove these additional moves done from prevMoves
+    // remove additional reversing moves from prevMoves
     updateMoves(bot, '-');
     updateMoves(bot, '-');
-    while (bot->numMoves > 0) {
+    while (!atHome(bot) && bot->numMoves > 0) {
         char lastMove = bot->prevMoves[bot->numMoves-1];
         updateMoves(bot, '-'); // remove last robot move
         if (lastMove == 'F') {
@@ -245,10 +265,13 @@ void reverseMoves(robot* bot) {
         }
         updateMoves(bot, '-');
     }
+    while (bot->numMoves > 0) {
+        updateMoves(bot, '-');
+    }
 }
 
-void moveRobot(robot* bot) {
-    drawRobot(bot);
+void algorithmStage4(robot* bot) {
+    // may get in a loop if 4 blocks are placed in a specific way
     while (markersLeft > 0) {
         while (!atMarker(bot)) {
             right(bot);
@@ -260,6 +283,92 @@ void moveRobot(robot* bot) {
         reverseMoves(bot);
         dropMarker(bot);
     }
+}
+
+char getOppositeDir(char overallDir) {
+    if (overallDir == 'E') {
+        return 'W';
+    }
+    return 'E';
+}
+
+void algorithmStage5(robot* bot) {
+    // algorithm may not work if more than one obstacle is placed within any 2x2 section of the grid
+    char overallDir = 'W';
+    while (markersLeft > 0) {
+        while (bot->dir != 'S') {
+            left(bot);
+        }
+        while (!atMarker(bot)) {
+            if (isObstacle(bot)) {
+                // move around obstacle
+                right(bot);
+                if (canMoveForward(bot)) {
+                    forward(bot);
+                    left(bot);
+                    forward(bot);
+                    forward(bot);
+                    left(bot);
+                    forward(bot);
+                    right(bot);
+                } else { // go around the other side
+                    left(bot);
+                    left(bot);
+                    forward(bot);
+                    right(bot);
+                    forward(bot);
+                    forward(bot);
+                    right(bot);
+                    forward(bot);
+                    left(bot);
+                }
+            } else { // a wall has been reached
+                if ((bot->dir == 'N' && overallDir == 'E') || (bot->dir == 'S' && overallDir == 'W')) {
+                    right(bot);
+                    if (canMoveForward(bot)) {
+                        forward(bot);
+                    } else {
+                        if (isObstacle(bot)) {
+                            right(bot);
+                            forward(bot);
+                            left(bot);
+                            forward(bot);
+                        } else {
+                            overallDir = getOppositeDir(overallDir);
+                        }
+                    }
+                    right(bot);
+                } else {
+                    left(bot);
+                    if (canMoveForward(bot)) {
+                        forward(bot);
+                    } else {
+                        if (isObstacle(bot)) {
+                            left(bot);
+                            forward(bot);
+                            right(bot);
+                            forward(bot);
+                        } else {
+                            overallDir = getOppositeDir(overallDir);
+                        }
+                    }
+                    left(bot);
+                }
+            }
+            while (!atMarker(bot) && canMoveForward(bot)) {
+                forward(bot);
+            }
+        }
+        pickUpMarker(bot);
+        reverseMoves(bot);
+        dropMarker(bot);
+    }
+}
+
+void moveRobot(robot* bot) {
+    drawRobot(bot);
+    //algorithmStage4(bot);
+    algorithmStage5(bot);
 }
 
 int getPosition(char* positionArg, int boundary) {
