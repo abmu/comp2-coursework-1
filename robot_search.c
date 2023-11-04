@@ -293,7 +293,7 @@ char getOppositeDir(char overallDir) {
 }
 
 void algorithmStage5(robot* bot) {
-    // algorithm may not work if more than one obstacle is placed within any 2x2 section of the grid
+    // algorithm may not work if more than one obstacle is placed within a given 2x2 section of the grid
     char overallDir = 'W';
     while (markersLeft > 0) {
         while (bot->dir != 'S') {
