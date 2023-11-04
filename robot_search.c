@@ -11,7 +11,7 @@ const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
 int markersLeft = 0;
-const int waitTime = 25; // milliseconds
+const int waitTime = 50; // milliseconds
 
 typedef struct robot {
     int x;
@@ -109,28 +109,20 @@ void drawRobot(robot* bot) {
 }
 
 int canMoveForward(robot* bot) {
+    // check if there is a wall or obstacle
     if (bot->dir == 'N') {
         int forwardY = bot->y - 1;
-        if (forwardY >= 0 && grid[forwardY][bot->x] != 2) { // 2 is obstacle tile
-            return 1;
-        }
+        return (forwardY >= 0 && grid[forwardY][bot->x] != 2); // 2 is obstacle tile
     } else if (bot->dir == 'E') {
         int forwardX = bot->x + 1;
-        if (forwardX < gridWidth && grid[bot->y][forwardX] != 2) {
-            return 1;
-        }
+        return (forwardX < gridWidth && grid[bot->y][forwardX] != 2);
     } else if (bot->dir == 'S') {
         int forwardY = bot->y + 1;
-        if (forwardY < gridHeight && grid[forwardY][bot->x] != 2) {
-            return 1;
-        }
+        return (forwardY < gridHeight && grid[forwardY][bot->x] != 2);
     } else { // robot facing west
         int forwardX = bot->x - 1;
-        if (forwardX >= 0 && grid[bot->y][forwardX] != 2) {
-            return 1;
-        }
+        return (forwardX >= 0 && grid[bot->y][forwardX] != 2);
     }
-    return 0;
 }
 
 int isObstacle(robot* bot) {
@@ -292,8 +284,8 @@ char getOppositeDir(char overallDir) {
     return 'E';
 }
 
-void algorithmStage5(robot* bot) {
-    // algorithm may not work if more than one obstacle is placed within a given 2x2 section of the grid
+void algorithmStage6(robot* bot) {
+    // may not work if more than one obstacle is placed within a given 2x2 section of the grid
     char overallDir = 'W';
     while (markersLeft > 0) {
         while (bot->dir != 'S') {
@@ -340,7 +332,7 @@ void algorithmStage5(robot* bot) {
                     forward(bot);
                     left(bot);
                 }
-            } else { // a wall has been reached
+            } else {
                 if ((bot->dir == 'N' && overallDir == 'E') || (bot->dir == 'S' && overallDir == 'W')) {
                     right(bot);
                     if (canMoveForward(bot)) {
@@ -349,9 +341,12 @@ void algorithmStage5(robot* bot) {
                         if (isObstacle(bot)) {
                             right(bot);
                             forward(bot);
+                            if (atMarker(bot)) {
+                                break;
+                            }
                             left(bot);
                             forward(bot);
-                        } else {
+                        } else { // a wall has been reached
                             overallDir = getOppositeDir(overallDir);
                         }
                     }
@@ -364,9 +359,12 @@ void algorithmStage5(robot* bot) {
                         if (isObstacle(bot)) {
                             left(bot);
                             forward(bot);
+                            if (atMarker(bot)) {
+                                break;
+                            }
                             right(bot);
                             forward(bot);
-                        } else {
+                        } else { // a wall has been reached
                             overallDir = getOppositeDir(overallDir);
                         }
                     }
@@ -386,10 +384,10 @@ void algorithmStage5(robot* bot) {
 void moveRobot(robot* bot) {
     drawRobot(bot);
     //algorithmStage4(bot);
-    algorithmStage5(bot);
+    algorithmStage6(bot);
 }
 
-int getPosition(char* positionArg, int boundary) {
+int getStartPos(char* positionArg, int boundary) {
     int pos = strtol(positionArg, NULL, 10);
     if (pos >= 0 && pos < boundary) {
         return pos;
@@ -397,7 +395,7 @@ int getPosition(char* positionArg, int boundary) {
     return 0; // default position if argument is invalid
 }
 
-char getDirection(char* directionArg) {
+char getStartDir(char* directionArg) {
     char dir = toupper(directionArg[0]);
     if (dir == 'N' || dir == 'E' || dir == 'S' || dir == 'W') {
         return dir;
@@ -410,9 +408,9 @@ int main(int argc, char **argv) {
         fprintf(stderr,"Invalid number of arguments\n");
         return 1;
     }
-    int startX = getPosition(argv[1], gridWidth);
-    int startY = getPosition(argv[2], gridHeight);
-    char startDir = getDirection(argv[3]);
+    int startX = getStartPos(argv[1], gridWidth);
+    int startY = getStartPos(argv[2], gridHeight);
+    char startDir = getStartDir(argv[3]);
     robot robot1 = {startX, startY, startDir, 0, 0};
     
     setWindowSize(winSize,winSize);
