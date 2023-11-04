@@ -15,9 +15,14 @@ To run the program, follow these steps:
    ```bash
    ./a.out (0-9) (0-9) (N E S W) | java -jar "drawapp-3.0.jar"
    ```
-   Replace (0-9) (0-9) with an X and Y position on the grid, and (N E S W) with a cardinal direction (due to the nature of the algorithm this initial direction won't really make a difference). If the chosen grid position is already occupied, the program will not run, so select a different location if needed.
+   Replacing (0-9) (0-9) with an X and Y position on the grid, and (N E S W) with a cardinal direction (due to the nature of the algorithm this initial direction won't really make a difference).
 
-The grid can be adjusted by editing the `grid.txt` file.
+   For example:
+   ```bash
+   ./a.out 2 5 N | java -jar "drawapp-3.0.jar"
+   ```
+
+If the chosen grid position is already occupied, the program will not run, so select a different location if needed. The grid can also be adjusted by editing the `grid.txt` file.
 
 ## Known issues
 
