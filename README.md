@@ -19,7 +19,7 @@ To run the program, follow these steps:
 
    For example:
    ```bash
-   ./a.out 2 5 N | java -jar "drawapp-3.0.jar"
+   ./a.out 3 5 N | java -jar "drawapp-3.0.jar"
    ```
 
 If the chosen grid position is already occupied, the program will not run, so select a different location if needed. The grid can also be adjusted by editing the `grid.txt` file.

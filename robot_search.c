@@ -11,7 +11,8 @@ const int gridHeight = 10;
 const int gridWidth = 10;
 int grid[10][10];
 int markersLeft = 0;
-const int waitTime = 10; // milliseconds
+const int waitTime = 50; // milliseconds
+const int moveLimit = 500;
 
 typedef struct robot {
     int x;
@@ -287,13 +288,18 @@ char getOppositeDir(char overallDir) {
 void algorithmStage6(robot* bot) {
     // may not work if more than one obstacle is placed within a given 2x2 section of the grid
     // will get in a loop if there is an obstacle in the top corner and another in the bottom corner on one of the sides
-    // will skip specific positions if there are 2 obstacles on the very top with a gap in between, and 2 mirroring obstacles on the very bottom
+    // will skip specific positions if there are 2 obstacles on the very top with a gap in between, and an obstacle on the very bottom below the right obstacle
+    // will skip specific positions if there are 2 obstacles on the very bottom with a gap in between, and an obstacle on the very top above the left obstacle
     char overallDir = 'W';
     while (markersLeft > 0) {
         while (bot->dir != 'S') {
             left(bot);
         }
         while (!atMarker(bot)) {
+            if (bot->numMoves > moveLimit) {
+                fprintf(stderr,"Move limit will be reached and marker won't be found\n");
+                exit(4);
+            }
             if (isObstacle(bot)) {
                 // move around obstacle
                 right(bot);
