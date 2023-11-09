@@ -6,7 +6,7 @@ The code provided here completes all six stages of the coursework. The objective
 
 To run the program, follow these steps:
 
-1. Ensure you have the `graphics.c`, `graphics.h`, and `drawapp-3.0.jar` within the same directory as the coursework files.
+1. Ensure you have the `graphics.c`, `graphics.h`, and `drawapp-3.0.jar` files within the same directory as the coursework files.
 2. Compile the source code using the following command:
    ```bash
    gcc robot_search.c graphics.c
@@ -15,7 +15,7 @@ To run the program, follow these steps:
    ```bash
    ./a.out (0-9) (0-9) (N E S W) | java -jar "drawapp-3.0.jar"
    ```
-   Replacing (0-9) (0-9) with an X and Y position on the grid, and (N E S W) with a cardinal direction (due to the nature of the algorithm this initial direction won't really make a difference).
+   In this command, replace (0-9) (0-9) with an X and Y position on the grid, and (N E S W) with a cardinal direction (due to the nature of the algorithm this initial direction won't really make a difference).
 
    For example:
    ```bash
