@@ -9,7 +9,7 @@ To run the program, follow these steps:
 1. Ensure you have the `graphics.c`, `graphics.h`, and `drawapp-3.0.jar` files within the same directory as the coursework files.
 2. Compile the source code using the following command:
    ```bash
-   gcc robot_search.c graphics.c
+   gcc main.c grid.c robot.c graphics.c
    ```
 3. Execute the compiled program with the following command:
    ```bash
@@ -26,4 +26,4 @@ If the chosen grid position is already occupied, the program will not run, so se
 
 ## Known issues
 
-There are some obstacle positions which may potentially cause the robot to fail to find all of the markers. These are listed in more detail within the `algorithmStage6` procedure in `robot_search.c`.
+There are some obstacle positions which may potentially cause the robot to fail to find all of the markers. These are listed in more detail within the `algorithmStage6` procedure in `main.c`.
