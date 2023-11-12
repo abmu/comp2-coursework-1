@@ -185,7 +185,7 @@ void reverseMoves(robot* botPtr, grid* gridPtr) {
         }
         updateMoves(botPtr, '-');
     }
-    // clear remaining moves when home is reached before robot fully reverses
+    // clear remaining moves if home is reached before robot fully reverses
     while (botPtr->numMoves > 0) {
         updateMoves(botPtr, '-');
     }
