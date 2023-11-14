@@ -46,7 +46,7 @@ void algorithmStage6(robot* botPtr, grid* gridPtr) {
             left(botPtr, gridPtr);
         }
         while (!atMarker(botPtr, gridPtr)) {
-            if (botPtr->numMoves > moveLimit) {
+            if (botPtr->numMoves >= moveLimit) {
                 fprintf(stderr,"Move limit will be reached and marker won't be found\n");
                 exit(4);
             }
